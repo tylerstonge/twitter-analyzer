@@ -1,0 +1,1 @@
+#iPad in perpetual restore loop after trying to upgrade to #iOS5 :(
