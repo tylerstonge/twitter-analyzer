@@ -12,6 +12,13 @@ import com.aliasi.util.AbstractExternalizable;
 import com.aliasi.classify.ConditionalClassification;
 import com.aliasi.corpus.ObjectHandler;
 
+/**
+* This SentimentAnalyzer class reads through annotated test data to prime a SentimentAnalyzer.
+* The analyzer has three categories pos, neu, and neg, which currently is primed with
+* different sets of tweets from various sources.
+* @author Tyler St. Onge
+*/
+
 public class SentimentAnalyzer {
 
     private static SentimentAnalyzer instance;
@@ -32,11 +39,19 @@ public class SentimentAnalyzer {
         }
     }
 
+    /**
+    * Classify the given text
+    * @param text The text to be analyzed
+    * @return the category the text is most similar to
+    */
     public String classify(String text) {
         ConditionalClassification classification = this.classifier.classify(text);
         return classification.bestCategory();
     }
 
+    /**
+    * Iterate over all annotated test data to train the analyzer
+    */
     public void train() throws IOException, ClassNotFoundException {
         File folder = new File(getClass().getClassLoader().getResource("sentiment_data").getFile());
         String[] cats = folder.list();
@@ -59,6 +74,11 @@ public class SentimentAnalyzer {
         AbstractExternalizable.compileTo((Compilable) classifier, new File("classifier.txt"));
     }
 
+    /**
+    * Get the instance of the SentimentAnalyzer, keeping only one around saves
+    * from analyzing all test data again.
+    * @return The SentimentAnalyzer object
+    */
     public static SentimentAnalyzer getInstance() {
         if (instance == null)
             instance = new SentimentAnalyzer();
