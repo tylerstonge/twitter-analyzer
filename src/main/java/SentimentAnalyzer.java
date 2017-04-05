@@ -16,7 +16,6 @@ import com.aliasi.corpus.ObjectHandler;
 * This SentimentAnalyzer class reads through annotated test data to prime a SentimentAnalyzer.
 * The analyzer has three categories pos, neu, and neg, which currently is primed with
 * different sets of tweets from various sources.
-* @author Tyler St. Onge
 */
 
 public class SentimentAnalyzer {
