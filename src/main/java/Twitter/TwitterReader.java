@@ -27,14 +27,14 @@ import com.vdurmont.emoji.EmojiParser;
 public class TwitterReader {
     private static final String URL = "https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=%s&count=%d";
     private static final String credentials = "vOMaAfmmGGy1d1fqaVAhQ52Ra:tK7XqjdWNNdzuaclGhGv1iVWCfDqzyhZxFpzFgDy57iCcCj1Gt";
-    
+
     private StringBuilder formattedUrl;
     private Formatter formatter;
-    
+
     private OkHttpClient client;
     private String bearerToken;
     private Headers headers;
-    
+
     public TwitterReader() {
         this.formattedUrl = new StringBuilder();
         this.formatter = new Formatter(formattedUrl, Locale.US);
@@ -44,7 +44,7 @@ public class TwitterReader {
             .add("Authorization", "Bearer " + bearerToken)
             .build();
     }
-    
+
     /**
     * Get most recent tweets from a users Twitter feed.
     * @param user the user to retrieve recent tweets from
@@ -54,7 +54,7 @@ public class TwitterReader {
         // Stores the current url into the class level stringbuilder
         formatter.format(URL, user, count);
         List<Tweet> t = new ArrayList<Tweet>();
-        
+
         // Make the request
         try {
             Response res = makeRequest(formattedUrl.toString());
@@ -62,9 +62,10 @@ public class TwitterReader {
             JsonArray tweets = parser.parse(res.body().string()).getAsJsonArray();
             for (JsonElement tweet : tweets) {
                 JsonObject obj = tweet.getAsJsonObject();
+                String id = obj.get("id_str").getAsString();
                 String author = user;
                 String text = parseTweet(obj.get("text").getAsString());
-                t.add(new Tweet(author, text));
+                t.add(new Tweet(id, author, text));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -73,11 +74,11 @@ public class TwitterReader {
         }
         return t;
     }
-    
+
     /**
     * Performs a request on the url.
     * @param url The url to make the request to.
-    * @return a response object 
+    * @return a response object
     */
     private Response makeRequest(String url) throws IOException, IllegalStateException {
         // Make the request
@@ -86,9 +87,9 @@ public class TwitterReader {
             .headers(headers)
             .build();
         Response res = client.newCall(req).execute();
-        return res; 
+        return res;
     }
-    
+
     /**
     * Performs the necessary authorization call to Twitter.
     * @return the bearer token to be used in requests
@@ -102,14 +103,14 @@ public class TwitterReader {
 
         // Create POST data
         FormBody f = new FormBody.Builder().add("grant_type", "client_credentials").build();
-        
+
         // Create the Request
         Request req = new Request.Builder()
             .url("https://api.twitter.com/oauth2/token")
             .post(f)
             .headers(h)
             .build();
-        
+
         // Get the response
         try {
             Response res = client.newCall(req).execute();
@@ -123,7 +124,7 @@ public class TwitterReader {
         }
         return "";
     }
-    
+
     /**
     * Remove URLs and Emojis from tweets.
     * @param tweet the Tweet to remove URLs and Emojis from.
@@ -140,5 +141,5 @@ public class TwitterReader {
         }
         return EmojiParser.removeAllEmojis(tweet);
     }
-    
+
 }

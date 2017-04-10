@@ -21,18 +21,18 @@ public class BTree {
             this.children = new Node[order];
             this.parent = parent;
         }
-        
+
         public Node(Node parent, Entry[] entries, Node[] children) {
             this.parent = parent;
             this.entries = entries;
             this.children = children;
         }
-        
+
         public void sort() {
             Arrays.sort(entries, new EntryComparator());
             Arrays.sort(children, new ChildrenComparator());
         }
-        
+
         public boolean isFull() {
             for (int i = 0; i < entries.length; i++) {
                 if (entries[i] == null)
@@ -40,7 +40,7 @@ public class BTree {
             }
             return true;
         }
-        
+
         public boolean isEmpty() {
             for (int i = 0; i < entries.length; i++) {
                 if (entries[i] != null)
@@ -48,7 +48,7 @@ public class BTree {
             }
             return true;
         }
-        
+
         public boolean isLeaf() {
             for (int i = 0; i < children.length; i++) {
                 if (children[i] != null)
@@ -56,7 +56,7 @@ public class BTree {
             }
             return true;
         }
-        
+
         public boolean insertEntry(Entry e) {
             for (int i = 0; i < entries.length; i++) {
                 if (entries[i] == null) {
@@ -67,7 +67,7 @@ public class BTree {
             }
             return false;
         }
-        
+
         public boolean insertChild(Node c) {
             for (int i = 0; i < children.length; i++) {
                 if (children[i] == null) {
@@ -78,7 +78,7 @@ public class BTree {
             }
             return false;
         }
-        
+
         public void removeChild(Node c) {
             for (int i = 0; i < children.length; i++) {
                 if (children[i] == c) {
@@ -89,11 +89,11 @@ public class BTree {
             }
         }
     }
-    
+
     public class Entry {
         Comparable key;
         Object value;
-        
+
         public Entry(Comparable key, Object value) {
             this.key = key;
             this.value = value;
@@ -117,10 +117,10 @@ public class BTree {
         }
         return insert(root, k, v);
     }
-    
+
     public void split(Node n) {
         int middle = (order - 1) / 2;
-        
+
         // Insert children
         Node parent;
         if (n.parent == null) {
@@ -131,7 +131,7 @@ public class BTree {
             parent.removeChild(n);
             parent.insertEntry(n.entries[middle]);
         }
-        
+
         // Create left subtree
         Node left = new Node(parent, order);
         // Store values
@@ -142,7 +142,7 @@ public class BTree {
                 n.entries[i] = null;
             }
         }
-        
+
         // Create right subtree
         Node right = new Node(parent, order);
         for (int i = middle + 1; i < n.entries.length; i++) {
@@ -152,16 +152,16 @@ public class BTree {
                 n.entries[i] = null;
             }
         }
-        
+
         left.sort();
         right.sort();
-        
+
         parent.insertChild(left);
         parent.insertChild(right);
         parent.sort();
         if (parent.isFull()) split(parent);
     }
-    
+
     public boolean insert(Node n, Comparable k, Object v) {
         if (n.isLeaf()) {
             if (n.insertEntry(new Entry(k, v))) {
@@ -183,14 +183,14 @@ public class BTree {
         }
         return false;
     }
-    
+
     /**
     * Convenience function which calls printTree on root.
     */
     public void printTree() {
         printTree(root);
     }
-    
+
     /**
     * Print the values of the node, and all the values of its subtrees.
     * @param n the node to start printing from
@@ -212,12 +212,12 @@ public class BTree {
             }
         }
     }
-    
+
     private class EntryComparator implements Comparator {
         @Override
         public int compare(Object o1, Object o2) {
             Entry e1 = (Entry) o1;
-            Entry e2 = (Entry) o2;    
+            Entry e2 = (Entry) o2;
             if (e2 != null && e1 != null) {
                 return e1.key.compareTo(e2.key);
             } else if (e1 == null && e2 != null) {
@@ -229,7 +229,7 @@ public class BTree {
             }
         }
     }
-    
+
     private class ChildrenComparator implements Comparator {
         @Override
         public int compare(Object o1, Object o2) {

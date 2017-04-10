@@ -2,17 +2,24 @@ public class Tweet {
     private String author;
     private String text;
     private String sentiment;
+    private String id;
 
-    public Tweet(String author, String text, String sentiment) {
+    public Tweet(String id, String author, String text, String sentiment) {
+        this.id = id;
         this.author = author;
         this.text = text;
         this.sentiment = sentiment;
     }
 
-    public Tweet(String author, String text) {
+    public Tweet(String id, String author, String text) {
+        this.id = id;
         this.author = author;
         this.text = text;
         this.sentiment = SentimentAnalyzer.getInstance().classify(text);
+    }
+
+    public String getId() {
+        return this.id;
     }
 
     public String getAuthor() {
@@ -26,7 +33,7 @@ public class Tweet {
     public String getSentiment() {
         return this.sentiment;
     }
-    
+
     /**
     * Calculates the Levenshtein Distance, or edit distance, between two strings
     */
@@ -35,17 +42,17 @@ public class Tweet {
         int m = t.length();
         if (n == 0 || m == 0) { return n == 0 ? m : n; }
         int[][] matrix = new int[n + 1][m + 1];
-        
+
         // initialize first row to 0..n
         for (int i = 0; i < n; i++) {
             matrix[0][i] = i;
         }
-        
+
         // initialize first column to 0..m
         for (int i = 0; i < m; i++) {
             matrix[i][0] = i;
         }
-        
+
         // iterate through matrix
         for (int i = 1; i <= n; i++) {
             char si = s.charAt(i - 1);
