@@ -48,10 +48,10 @@ public class Cache {
                 // Cache is fresh, get data
                 System.out.println("Fetching from cache: length: " + length + "; timestamp: " + timestamp);
                 for (int i = 0; i < length; i++) {
-                    String id = f.readUTF();
+                    long id = f.readLong();
                     String sentiment = f.readUTF();
                     String text = f.readUTF();
-                    tweets.add(new Tweet(username, text, sentiment));
+                    tweets.add(new Tweet(id, username, text, sentiment));
                 }
                 f.close();
             }
