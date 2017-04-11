@@ -16,15 +16,11 @@ public class App {
     };
 
     public static void main(String[] args) {
-        BTree b = new BTree(5);
-        b.insert("Hello", "world");
-        b.insert("Apple", "Bby");
-        b.insert("Bark", "Dude");
-        b.insert("Zork", "II");
-        b.insert("Zark", "II");
-        b.insert("Zfrk", "II");
-        b.insert("Zzrk", "II");
-        b.printTree();
+        PersistentBTree b = new PersistentBTree(5);
+        // b.insert("Hello", "world");
+        // b.insert("Apple", "Bby");
+        // b.insert("Bark", "Dude");
+        // b.printTree();
 
         // Cache c = new Cache();
         // List<Tweet> tweets = c.getTweetsFromUser("potus");

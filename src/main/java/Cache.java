@@ -78,7 +78,7 @@ public class Cache {
 
             // Write the tweets to file for future access
             for (Tweet t : tweets) {
-                f.writeUTF(t.getId());
+                f.writeLong(t.getId());
                 f.writeUTF(t.getSentiment());
                 f.writeUTF(t.getText());
             }

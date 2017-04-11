@@ -62,7 +62,7 @@ public class TwitterReader {
             JsonArray tweets = parser.parse(res.body().string()).getAsJsonArray();
             for (JsonElement tweet : tweets) {
                 JsonObject obj = tweet.getAsJsonObject();
-                String id = obj.get("id_str").getAsString();
+                long id = obj.get("id").getAsLong();
                 String author = user;
                 String text = parseTweet(obj.get("text").getAsString());
                 t.add(new Tweet(id, author, text));
