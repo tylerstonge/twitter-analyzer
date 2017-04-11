@@ -1,4 +1,5 @@
 import java.util.List;
+import java.util.ArrayList;
 
 public class App {
     private static String[] defaultAccounts = new String[] {
@@ -18,16 +19,15 @@ public class App {
     public static void main(String[] args) {
         PersistentBTree b = new PersistentBTree(32);
         Cache c = new Cache();
-        
+
+        ArrayList<Long> ids = new ArrayList<Long>();
+
         for (String acc : defaultAccounts) {
             List<Tweet> tweets = c.getTweetsFromUser(acc);
-            System.out.println(acc);
             for (Tweet t : tweets) {
-                System.out.println(t.getId());
-                //b.insert(t.getId());
+                b.insert(t.getId());
             }
         }
-        
-        //b.printTree();
+        b.printTree();
     }
 }

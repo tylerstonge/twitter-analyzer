@@ -46,7 +46,6 @@ public class Cache {
                 tweets = createCacheFile(username);
             } else {
                 // Cache is fresh, get data
-                System.out.println("Fetching from cache: length: " + length + "; timestamp: " + timestamp);
                 for (int i = 0; i < length; i++) {
                     long id = f.readLong();
                     String sentiment = f.readUTF();
@@ -61,6 +60,19 @@ public class Cache {
             e.printStackTrace();
         }
         return tweets;
+    }
+
+    public Tweet getTweetFromId(long id) {
+        File[] storedUsers = folder.listFiles();
+        for (File user : storedUsers) {
+            List<Tweet> tweets = readCacheFile(user);
+            for (Tweet t : tweets) {
+                if (t.getId() == id) {
+                    return t;
+                }
+            }
+        }
+        return null;
     }
 
     public List<Tweet> createCacheFile(String username) {

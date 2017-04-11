@@ -18,13 +18,6 @@ public class PersistentBTree {
     private File file;
     private long eof;
 
-    /**
-    * Node layout
-    *
-    * 1 byte                isLeaf
-    * 8 * (2 * order)       children pointers
-    * 8 * (2 * order - 1)   keys array
-    */
     private class Node {
         public long offset;
         public boolean isLeaf;
@@ -83,7 +76,7 @@ public class PersistentBTree {
                 // No BTree data file exists
                 file.createNewFile();
                 this.root = new Node(order, true);
-                
+
                 // Keep track of EOF as first long in file
                 root = writeNode(root);
                 updateEOF(this.eof);
@@ -102,13 +95,13 @@ public class PersistentBTree {
         try {
             Node r = readNode(root.offset);
             if (r.isFull()) {
-                
+
                 // New root
                 Node s = new Node(r.offset);
                 s = writeNode(s);
                 root = s;
                 updateRootOffset(s.offset);
-                
+
                 // Split root
                 splitChild(s, 0, r);
                 insertNonFull(s, key);
@@ -201,7 +194,7 @@ public class PersistentBTree {
         for (int j = x.keys.length - 2; j >= i; j--) {
             x.keys[j + 1] = x.keys[j];
         }
-        
+
         x.keys[i] = y.keys[t];
         y.keys[t] = Long.MAX_VALUE;
 
@@ -216,7 +209,7 @@ public class PersistentBTree {
         channel.seek(offset);
 
         // get isLeaf
-        boolean isLeaf = channel.readUnsignedByte() == (byte) 0x1 ? true : false;
+        boolean isLeaf = channel.readByte() == (byte) 0x1 ? true : false;
 
         // get children
         long[] children = new long[2*order];
@@ -253,13 +246,13 @@ public class PersistentBTree {
         for (int i = 0; i < node.keys.length; i++) {
             channel.writeLong(node.keys[i]);
         }
-        
+
         if (node.offset == eof) {
             this.eof = channel.getFilePointer();
             updateEOF(this.eof);
         }
         channel.close();
-        
+
         return node;
     }
 
@@ -269,14 +262,14 @@ public class PersistentBTree {
         channel.writeLong(eof);
         channel.close();
     }
-    
+
     private void updateRootOffset(long offset) throws FileNotFoundException, IOException {
         RandomAccessFile channel = new RandomAccessFile(file, "rw");
         channel.seek(8);
         channel.writeLong(offset);
         channel.close();
     }
-    
+
     private long getRootOffset() throws FileNotFoundException, IOException {
         RandomAccessFile channel = new RandomAccessFile(file, "rw");
         channel.seek(8);

@@ -58,6 +58,7 @@ public class TwitterReader {
         // Make the request
         try {
             Response res = makeRequest(formattedUrl.toString());
+            formattedUrl.setLength(0);
             JsonParser parser = new JsonParser();
             JsonArray tweets = parser.parse(res.body().string()).getAsJsonArray();
             for (JsonElement tweet : tweets) {
