@@ -16,12 +16,19 @@ public class App {
     };
 
     public static void main(String[] args) {
-        PersistentBTree b = new PersistentBTree(5);
-        b.insert(5000L, 30L);
-        b.insert(1000L, 30L);
-        // b.insert(4000L, 30L);
-        // b.insert(2000L, 30L);
-        // b.insert(6000L, 30L);
+        PersistentBTree b = new PersistentBTree(4);
+        b.insert(1000L);
+        b.insert(2000L);
+        b.insert(3000L);
+        b.insert(4000L);
+        b.insert(5000L);
+        b.insert(6000L);
+        b.insert(7000L);
+        b.insert(8000L);
+        b.insert(9000L);
+        b.insert(10000L);
+        b.insert(11000L);
+        b.insert(12000L);
         b.printTree();
 
         // Cache c = new Cache();
