@@ -17,12 +17,12 @@ public class App {
 
     public static void main(String[] args) {
         PersistentBTree b = new PersistentBTree(5);
-        b.insert(1000L, 20L);
+        b.insert(5000L, 30L);
+        b.insert(1000L, 30L);
+        // b.insert(4000L, 30L);
+        // b.insert(2000L, 30L);
+        // b.insert(6000L, 30L);
         b.printTree();
-        // b.insert("Hello", "world");
-        // b.insert("Apple", "Bby");
-        // b.insert("Bark", "Dude");
-        // b.printTree();
 
         // Cache c = new Cache();
         // List<Tweet> tweets = c.getTweetsFromUser("potus");

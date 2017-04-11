@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.channels.FileChannel;
 import java.io.FileNotFoundException;
+import java.util.Arrays;
 
 public class PersistentBTree {
 
@@ -15,44 +16,46 @@ public class PersistentBTree {
     private Node root;
     private File file;
     private long eof;
-    private static int blocksize;
-    private static int maxentries;
+    private static int fileoffset = 8;
 
     /**
     * Node layout
     *
-    * 8 bytes           parent
-    * 1 byte            isLeaf
-    * 8 * order         children pointers
-    * (order - 1) * 16   entries array
+    * 8 bytes               parent
+    * 1 byte                isLeaf
+    * 8 * (2 * order)       children pointers
+    * 8 * (2 * order - 1)   keys array
     */
     private class Node {
         public long offset;
         public long parent;
         public boolean isLeaf;
         public long[] children;
-        public long[] entries;
+        public long[] keys;
 
         public Node(long child) {
             this.parent = 0;
             this.isLeaf = false;
-            this.entries = new long[(order - 1) * 2]; // store keys alongside values 2*i are keys, 2*i+1 are values
-            this.children = new long[order];
+            this.keys = new long[2*order - 1];
+            Arrays.fill(this.keys, Long.MAX_VALUE);
+            this.children = new long[2*order];
             this.children[0] = child;
         }
 
-        public Node(long offset, long parent, boolean isLeaf, long[] children, long[] entries) {
+        public Node(long offset, long parent, boolean isLeaf, long[] children, long[] keys) {
             this.offset = offset;
             this.parent = parent;
             this.isLeaf = isLeaf;
             this.children = children;
-            this.entries = entries;
+            this.keys = keys;
         }
 
         public Node(long parent, int order, boolean isLeaf) {
             this.parent = parent;
-            this.entries = new long[(order - 1) * 2];
-            this.children = new long[order];
+            this.keys = new long[2*order - 1];
+            Arrays.fill(this.keys, Long.MAX_VALUE);
+            this.children = new long[2*order];
+            this.isLeaf = isLeaf;
         }
 
         public void setOffset(long offset) {
@@ -60,15 +63,15 @@ public class PersistentBTree {
         }
 
         public boolean isFull() {
-            for (int i = 0; i < entries.length; i += 2)
-                if (entries[i] == 0) { return false; }
+            for (int i = 0; i < keys.length; i++)
+                if (keys[i] == Long.MAX_VALUE) { return false; }
             return true;
         }
     }
 
     public PersistentBTree(int order) {
-        this.blocksize = 8 + 1 + (8 * order) + (order - 1) * 16;
-        this.maxentries = (order - 1) * 2;
+        this.order = order;
+        this.eof = fileoffset;
         // Get or create the file
         try {
             file = new File("btree");
@@ -77,10 +80,10 @@ public class PersistentBTree {
                 file.createNewFile();
                 this.root = new Node(0, order, true);
                 // Keep track of EOF as first long in file
-                this.eof = writeNode(8, root);
+                writeNode(root);
                 updateEOF(this.eof);
             } else {
-                root = readNode(0);
+                root = readNode(this.fileoffset);
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -91,9 +94,8 @@ public class PersistentBTree {
 
     public void insert(long key, long value) {
         try {
-            Node r = root;
+            Node r = readNode(root.offset);
             if (r.isFull()) {
-                System.out.println("Node full, gotta split");
                 Node s = new Node(r.offset);
                 this.eof = writeNode(eof, s);
                 s.setOffset(this.eof);
@@ -101,7 +103,6 @@ public class PersistentBTree {
                 splitChild(s, 1, r);
                 insertNonFull(s, key, value);
             } else {
-                System.out.println("Inserting " + key + " - " + value);
                 insertNonFull(r, key, value);
             }
         } catch (IOException e) {
@@ -116,8 +117,9 @@ public class PersistentBTree {
     public void printTree(Node n) {
         try {
             n = readNode(n.offset);
-            for (int i = 0; i < n.entries.length; i+=2) {
-                System.out.println("K: " + n.entries[i] + "; V: " + n.entries[i + 1]);
+            System.out.println("NODE -- " + n.isLeaf);
+            for (int i = 0; i < n.keys.length; i++) {
+                System.out.println("K: " + (n.keys[i] == Long.MAX_VALUE ? "null" : n.keys[i]));
             }
             if (!n.isLeaf) {
                 for (int i = 0; i < n.children.length; i++) {
@@ -131,48 +133,44 @@ public class PersistentBTree {
     }
 
     public void insertNonFull(Node x, long k, long v) throws IOException {
-        int i = order - 1;
+        int i = x.keys.length - 1;
         if (x.isLeaf) {
             // Shift keys bigger than k to the right
-            while (i >= 0 && k < x.entries[i*2]) {
-                x.entries[i + 2] = x.entries[i];
-                x.entries[i + 3] = x.entries[i + 1];
+            while (i > 0 && k < x.keys[i - 1]) {
+                x.keys[i] = x.keys[i - 1];
                 i--;
             }
-            x.entries[i] = k;
-            x.entries[i + 1] = v;
+            x.keys[i] = k;
             writeNode(x);
         } else {
-            while (i >= 0 && k < x.entries[i*2]) {
-                Node c = readNode(x.children[i]);
-                if (c.isFull()) {
-                    splitChild(x, i, c);
-                    if (k > x.entries[i*2])
-                        i++;
-                }
-                insertNonFull(c, k, v);
+            while (i >= 0 && k < x.keys[i]) {
+                i--;
             }
+            Node c = readNode(x.children[i]);
+            if (c.isFull()) {
+                splitChild(x, i, c);
+                if (k > x.keys[i])
+                    i++;
+            }
+            insertNonFull(c, k, v);
         }
     }
 
     public void splitChild(Node x, int i, Node y) throws IOException {
         // Allocate the new node to eof, and move where the current eof is
         Node z = new Node(x.offset);
-        this.eof = writeNode(this.eof, z);
-        z.setOffset(eof);
-        updateEOF(this.eof);
+        z.offset = writeNode(z);
 
         z.isLeaf = y.isLeaf;
+        x.isLeaf = false;
 
         // t is the middle key
-        int t = order / 2;
+        int t = order - 1;
 
-        for (int j = 0; j < t; j+=2) {
+        for (int j = 0; j < t; j++) {
             // Copy key and values
-            z.entries[j] = y.entries[j+t];
-            z.entries[j+1] = y.entries[j+t+1];
-            y.entries[j+t] = 0;
-            y.entries[j+t+1] = 0;
+            z.keys[j] = y.keys[j+t];
+            y.keys[j+t] = 0;
         }
 
         if (!y.isLeaf) {
@@ -182,18 +180,16 @@ public class PersistentBTree {
             }
         }
 
-        for (int j = order; j > i; j--) {
-            x.children[j + 1] = x.children[j];
+        for (int j = x.keys.length; j >= i + 1; j--) {
+            x.children[j] = x.children[j - 1];
         }
-        x.children[i + 1] = z.offset;
+        x.children[i] = z.offset;
 
-        for (int j = order - 1; j > i; j--) {
-            x.entries[j + 1] = x.entries[j];
-            x.entries[j + 2] = x.entries[j + 1];
+        for (int j = x.keys.length - 1; j > i; j--) {
+            x.keys[j] = x.keys[j - 1];
         }
 
-        x.entries[i] = y.entries[t];
-        x.entries[i + 1] = y.entries[t + 1];
+        x.keys[i] = y.keys[t - 1];
 
         writeNode(y);
         writeNode(z);
@@ -212,22 +208,25 @@ public class PersistentBTree {
         boolean isLeaf = channel.readUnsignedByte() == (byte) 0x1 ? true : false;
 
         // get children
-        long[] children = new long[order];
+        long[] children = new long[2*order];
         for (int i = 0; i < order; i++) {
             children[i] = channel.readLong();
         }
 
-        long entries[] = new long[this.maxentries];
-        for (int i = 0; i < entries.length; i++) {
-            entries[i] = channel.readLong();
+        long keys[] = new long[2*order - 1];
+        for (int i = 0; i < keys.length; i++) {
+            keys[i] = channel.readLong();
         }
         channel.close();
 
-        return new Node(offset, parent, isLeaf, children, entries);
+        return new Node(offset, parent, isLeaf, children, keys);
     }
 
-    private void writeNode(Node node) throws IOException {
+    private long writeNode(Node node) throws IOException {
         RandomAccessFile channel = new RandomAccessFile(file, "rw");
+        if (node.offset == 0) {
+            node.offset = eof;
+        }
         channel.seek(node.offset);
 
         // Store parent
@@ -238,16 +237,22 @@ public class PersistentBTree {
         else { channel.writeByte((byte) 0x0); }
 
         // Store children pointers
-        for (int i = 0; i < order; i++) {
+        for (int i = 0; i < node.children.length; i++) {
             channel.writeLong(node.children[i]);
         }
 
-        // Store entries
-        for (int i = 0; i < node.entries.length; i++) {
-            channel.writeLong(node.entries[i]);
+        // Store keys
+        for (int i = 0; i < node.keys.length; i++) {
+            channel.writeLong(node.keys[i]);
         }
-
+        
+        if (node.offset == eof) {
+            this.eof = channel.getFilePointer();
+            updateEOF(this.eof);
+        }
         channel.close();
+        
+        return node.offset;
     }
 
     private long writeNode(long offset, Node node) throws IOException {
@@ -258,19 +263,17 @@ public class PersistentBTree {
         channel.writeLong(node.parent);
 
         // Store isLeaf
-        ByteBuffer isLeaf = ByteBuffer.allocate(1);
         if (node.isLeaf) { channel.writeByte((byte) 0x1); }
         else { channel.writeByte((byte) 0x0); }
 
         // Store children pointers
-        for (int i = 0; i < order; i++) {
+        for (int i = 0; i < node.children.length; i++) {
             channel.writeLong(node.children[i]);
         }
 
-        // Store entries
-        ByteBuffer entries = ByteBuffer.allocate(this.maxentries * 8);
-        for (int i = 0; i < node.entries.length; i++) {
-            entries.putLong(node.entries[i]);
+        // Store keys
+        for (int i = 0; i < node.keys.length; i++) {
+            channel.writeLong(node.keys[i]);
         }
 
         long position = channel.getFilePointer();
