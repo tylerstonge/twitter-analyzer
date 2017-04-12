@@ -68,7 +68,7 @@ public class Cache {
         try {
             // Create the file and get tweets
             RandomAccessFile f = new RandomAccessFile(folder.getPath() + "/" + username, "rw");
-            tweets = twitter.getTweetsFromUser(username, 5);
+            tweets = twitter.getTweetsFromUser(username, 100);
 
             // Store the length of the list
             f.writeInt(tweets.size());

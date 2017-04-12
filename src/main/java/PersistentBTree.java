@@ -154,14 +154,17 @@ public class PersistentBTree {
             x.keys[i] = k;
             writeNode(x);
         } else {
+            // Find which child this key belongs in
             while (i >= 0 && k < x.keys[i]) {
                 i--;
             }
-            Node c = readNode(x.children[i + 1]);
+            i++;
+            Node c = readNode(x.children[i]);
+            // If this child is full, split and try to insert again
             if (c.isFull()) {
                 splitChild(x, i, c);
                 if (k > x.keys[i])
-                    i++;
+                    c = readNode(x.children[i + 1]);
             }
             insertNonFull(c, k);
         }
