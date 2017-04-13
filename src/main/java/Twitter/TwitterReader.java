@@ -26,6 +26,7 @@ import com.vdurmont.emoji.EmojiParser;
 
 public class TwitterReader {
     private static final String URL = "https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=%s&count=%d";
+    private static final String UPDATE_URL = "https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=%s&count=%d&since_id=%d";
     private static final String credentials = "vOMaAfmmGGy1d1fqaVAhQ52Ra:tK7XqjdWNNdzuaclGhGv1iVWCfDqzyhZxFpzFgDy57iCcCj1Gt";
 
     private StringBuilder formattedUrl;
@@ -53,6 +54,35 @@ public class TwitterReader {
     public List<Tweet> getTweetsFromUser(String user, int count) {
         // Stores the current url into the class level stringbuilder
         formatter.format(URL, user, count);
+        List<Tweet> t = new ArrayList<Tweet>();
+
+        // Make the request
+        try {
+            Response res = makeRequest(formattedUrl.toString());
+            formattedUrl.setLength(0);
+            JsonParser parser = new JsonParser();
+            JsonArray tweets = parser.parse(res.body().string()).getAsJsonArray();
+            for (JsonElement tweet : tweets) {
+                JsonObject obj = tweet.getAsJsonObject();
+                long id = obj.get("id").getAsLong();
+                String author = user;
+                String text = parseTweet(obj.get("text").getAsString());
+                t.add(new Tweet(id, author, text, 0L));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        }
+        return t;
+    }
+    
+    /**
+    * Get tweets from a user after the provided id
+    */
+    public List<Tweet> newTweetsFromUser(String user, int count, long lastId) {
+        // Stores the current url into the class level stringbuilder
+        formatter.format(UPDATE_URL, user, count, lastId);
         List<Tweet> t = new ArrayList<Tweet>();
 
         // Make the request

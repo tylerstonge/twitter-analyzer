@@ -1,59 +1,21 @@
-import java.util.List;
-import java.util.ArrayList;
-
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.Parent;
 import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
 
-public class App {
-    private static String[] defaultAccounts = new String[] {
-        "potus",
-        "RogerJStoneJr",
-        "KremlinRussia_E",
-        "MedvedevRussia",
-        "GenFlynn",
-        "EricTrump",
-        "mike_pence",
-        "HassanRouhani",
-        "Marine2017_EN",
-        "RichardBSpencer",
-        "oreillyfactor"
-    };
+public class App extends Application {
 
-    // @Override
-    // public void start(Stage stage) throws Exception {
-    //     // // Get the tree and the cache
-    //     // PersistentBTree b = new PersistentBTree(32);
-    //     // Cache c = new Cache();
-    //     // 
-    //     // // for (String acc : defaultAccounts) {
-    //     // //     List<Tweet> tweets = c.getTweetsFromUser(acc);
-    //     // //     for (Tweet t : tweets) {
-    //     // //         b.insert(t.getId());
-    //     // //     }
-    //     // // }
-    //     // 
-    //     // Parent root = FXMLLoader.load(getClass().getResource("ui/main.xml"));
-    //     // Scene scene = new Scene(root);
-    //     // stage.setTitle("Twitter Analyzer");
-    //     // stage.setScene(scene);
-    //     // stage.show();    
-    // }
+    @Override
+    public void start(Stage stage) throws Exception {
+        Parent root = FXMLLoader.load(getClass().getResource("ui/main.xml"));
+        Scene scene = new Scene(root);
+        stage.setTitle("Twitter Analyzer");
+        stage.setScene(scene);
+        stage.show();    
+    }
 
     public static void main(String[] args) {
-        //launch(args);
-        // Get the tree and the cache
-        PersistentBTree b = new PersistentBTree(32);
-        Cache c = new Cache();
-        
-        for (String acc : defaultAccounts) {
-            List<Tweet> tweets = c.getTweetsFromUser(acc);
-            for (Tweet t : tweets) {
-                b.insert(t.getId(), t.getLocation());
-            }
-        }
-        b.printTree();
+        launch(args);
     }
 }

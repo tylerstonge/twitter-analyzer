@@ -1,33 +1,45 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<?import java.net.*?>
-<?import javafx.geometry.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.collections.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.control.cell.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
-<GridPane 
-    alignment="center" 
-    hgap="10.0" 
-    vgap="10.0"
-    xmlns:fx="http://javafx.com/fxml"
-    fx:controller="UIController">
-    <padding>
-        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-    </padding>
-    <Label 
-        style="-fx-font: normal 20 Tahoma;" 
-        text="Tweets"                
-        GridPane.columnIndex="0" 
-        GridPane.rowIndex="0">
-    </Label>
-    <TableView 
-        fx:id="tableView"
-        GridPane.columnIndex="0"
-        GridPane.rowIndex="1"
-        GridPane.hgrow="always"
-        GridPane.vgrow="always">
-        <columns>
-            <TableColumn text="Author"></TableColumn>
-            <TableColumn text="Text"></TableColumn>
-        </columns>
-    </TableView>
-</GridPane>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="UIController">
+  <center>
+    <TabPane fx:id="tabPane" side="TOP" tabClosingPolicy="UNAVAILABLE">
+      <tabs>
+        <Tab text="Home">
+            <TableView fx:id="tableView">
+                <columns>
+                     <TableColumn text="ID">
+                        <cellValueFactory><PropertyValueFactory property="id" />
+                        </cellValueFactory>
+                     </TableColumn>
+                     <TableColumn text="Author">
+                        <cellValueFactory><PropertyValueFactory property="author" />
+                        </cellValueFactory>
+                     </TableColumn>
+                     <TableColumn text="Text">
+                         <cellValueFactory><PropertyValueFactory property="text" />
+                         </cellValueFactory>
+                    </TableColumn>
+                </columns> 
+            </TableView>
+        </Tab>
+        <Tab text="Find Similar">
+          <content>
+            <GridPane id="Content" alignment="center" hgap="10" vgap="20">
+                <Text fx:id="tweet1" GridPane.rowIndex="1"></Text>
+                <Text text="is most similar to" GridPane.rowIndex="2"></Text>
+                <Text fx:id="tweet2" GridPane.rowIndex="4"></Text>
+            </GridPane>
+          </content>
+        </Tab>
+      </tabs>
+    </TabPane>
+  </center>
+</BorderPane>

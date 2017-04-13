@@ -9,6 +9,9 @@ import java.io.ObjectOutputStream;
 import java.nio.channels.FileChannel;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
+import javafx.collections.ObservableList;
 
 public class PersistentBTree {
 
@@ -116,6 +119,34 @@ public class PersistentBTree {
             e.printStackTrace();
         }
     }
+    
+    public void populateTweets(ObservableList<DisplayableTweet> t, Cache c) {
+        populateTweets(this.root, t, c);
+    }
+
+    public void populateTweets(Node n, ObservableList<DisplayableTweet> t, Cache c) {
+        try {
+            n = readNode(n.offset);
+            for (int i = 0; i < n.keys.length; i++) {
+                if (n.keys[i] != Long.MAX_VALUE) {
+                    Tweet tt = c.getTweetFromId(n.keys[i], n.values[i]);
+                    DisplayableTweet dt = new DisplayableTweet(""+tt.getId(), tt.getAuthor(), tt.getText(), tt.getSentiment());
+                    if (dt != null)
+                        t.add(dt);
+                }
+            }
+            
+            if (!n.isLeaf) {
+                for (int i = 0; i < n.children.length; i++) {
+                    if (n.children[i] > 0) {
+                        populateTweets(readNode(n.children[i]), t, c);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public void printTree() {
         printTree(root);
@@ -150,9 +181,15 @@ public class PersistentBTree {
                 x.values[i] = x.values[i - 1];
                 i--;
             }
-            x.keys[i] = k;
-            x.values[i] = v;
-            writeNode(x);
+            
+            if (i < x.keys.length - 1 && x.keys[i + 1] == k) {
+                x.values[i] = v;
+                writeNode(x);
+            } else {
+                x.keys[i] = k;
+                x.values[i] = v;
+                writeNode(x);
+            }
         } else {
             // Find which child this key belongs in
             while (i >= 0 && k < x.keys[i]) {
