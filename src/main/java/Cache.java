@@ -47,6 +47,7 @@ public class Cache {
             } else {
                 // Cache is fresh, get data
                 for (int i = 0; i < length; i++) {
+                    String location = username + ":" + f.position();
                     long id = f.readLong();
                     String sentiment = f.readUTF();
                     String text = f.readUTF();

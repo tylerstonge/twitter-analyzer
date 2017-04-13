@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<GridPane 
+    alignment="center" 
+    hgap="10.0" 
+    vgap="10.0"
+    xmlns:fx="http://javafx.com/fxml"
+    fx:controller="UIController">
+    <padding>
+        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+    </padding>
+    <Label 
+        style="-fx-font: normal 20 Tahoma;" 
+        text="Tweets"                
+        GridPane.columnIndex="0" 
+        GridPane.rowIndex="0">
+    </Label>
+    <TableView 
+        fx:id="tableView"
+        GridPane.columnIndex="0"
+        GridPane.rowIndex="1"
+        GridPane.hgrow="always"
+        GridPane.vgrow="always">
+        <columns>
+            <TableColumn text="Author"></TableColumn>
+            <TableColumn text="Text"></TableColumn>
+        </columns>
+    </TableView>
+</GridPane>
