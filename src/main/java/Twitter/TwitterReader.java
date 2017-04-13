@@ -66,7 +66,7 @@ public class TwitterReader {
                 long id = obj.get("id").getAsLong();
                 String author = user;
                 String text = parseTweet(obj.get("text").getAsString());
-                t.add(new Tweet(id, author, text));
+                t.add(new Tweet(id, author, text, 0L));
             }
         } catch (IOException e) {
             e.printStackTrace();

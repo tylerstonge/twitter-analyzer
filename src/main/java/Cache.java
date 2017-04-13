@@ -47,11 +47,11 @@ public class Cache {
             } else {
                 // Cache is fresh, get data
                 for (int i = 0; i < length; i++) {
-                    String location = username + ":" + f.position();
+                    long location = f.getFilePointer();
                     long id = f.readLong();
                     String sentiment = f.readUTF();
                     String text = f.readUTF();
-                    tweets.add(new Tweet(id, username, text, sentiment));
+                    tweets.add(new Tweet(id, username, text, sentiment, location));
                 }
                 f.close();
             }
@@ -63,14 +63,26 @@ public class Cache {
         return tweets;
     }
 
-    public Tweet getTweetFromId(long id) {
+    public Tweet getTweetFromId(long id, long location) {
         File[] storedUsers = folder.listFiles();
         for (File user : storedUsers) {
-            List<Tweet> tweets = readCacheFile(user);
-            for (Tweet t : tweets) {
-                if (t.getId() == id) {
-                    return t;
+            try {
+                RandomAccessFile f = new RandomAccessFile(user, "rw");
+                String username = user.getName();
+                int length = f.readInt();
+                if (length > location) {
+                    f.seek(location);
+                    long tid = f.readLong();
+                    if (tid == id) {
+                        String sentiment = f.readUTF();
+                        String text = f.readUTF();
+                        return new Tweet(id, username, text, sentiment, location);
+                    }
                 }
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
         return null;
@@ -91,6 +103,7 @@ public class Cache {
 
             // Write the tweets to file for future access
             for (Tweet t : tweets) {
+                t.setLocation(f.getFilePointer());
                 f.writeLong(t.getId());
                 f.writeUTF(t.getSentiment());
                 f.writeUTF(t.getText());

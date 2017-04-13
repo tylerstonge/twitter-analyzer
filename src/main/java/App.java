@@ -51,12 +51,9 @@ public class App {
         for (String acc : defaultAccounts) {
             List<Tweet> tweets = c.getTweetsFromUser(acc);
             for (Tweet t : tweets) {
-                b.insert(t.getId(), t.getAuthor());
+                b.insert(t.getId(), t.getLocation());
             }
         }
-        b.insert(1010112140, "testtesttest");
-        b.insert(1010121230, "test");
-        b.insert(1010123110, "testtest");
         b.printTree();
     }
 }

@@ -23,28 +23,26 @@ public class PersistentBTree {
         public boolean isLeaf;
         public long[] children;
         public long[] keys;
-        public String[] values;
+        public long[] values;
 
         public Node() {
             this.isLeaf = true;
             this.keys = new long[2*order - 1];
-            this.values = new String[2*order - 1];
+            this.values = new long[2*order - 1];
             Arrays.fill(this.keys, Long.MAX_VALUE);
-            Arrays.fill(this.values, "none");
             this.children = new long[2*order];
         }
 
         public Node(long child) {
             this.isLeaf = false;
             this.keys = new long[2*order - 1];
-            this.values = new String[2*order - 1];
+            this.values = new long[2*order - 1];
             Arrays.fill(this.keys, Long.MAX_VALUE);
-            Arrays.fill(this.values, "none");
             this.children = new long[2*order];
             this.children[0] = child;
         }
 
-        public Node(long offset, boolean isLeaf, long[] children, long[] keys, String[] values) {
+        public Node(long offset, boolean isLeaf, long[] children, long[] keys, long[] values) {
             this.offset = offset;
             this.isLeaf = isLeaf;
             this.children = children;
@@ -54,9 +52,8 @@ public class PersistentBTree {
 
         public Node(int order, boolean isLeaf) {
             this.keys = new long[2*order - 1];
-            this.values = new String[2*order - 1];
+            this.values = new long[2*order - 1];
             Arrays.fill(this.keys, Long.MAX_VALUE);
-            Arrays.fill(this.values, "none");
             this.children = new long[2*order];
             this.isLeaf = isLeaf;
         }
@@ -99,7 +96,7 @@ public class PersistentBTree {
         }
     }
 
-    public void insert(long key, String value) {
+    public void insert(long key, long value) {
         try {
             Node r = readNode(root.offset);
             if (r.isFull()) {
@@ -144,7 +141,7 @@ public class PersistentBTree {
         }
     }
 
-    public void insertNonFull(Node x, long k, String v) throws IOException {
+    public void insertNonFull(Node x, long k, long v) throws IOException {
         int i = x.keys.length - 1;
         if (x.isLeaf) {
             // Shift keys bigger than k to the right
@@ -188,7 +185,7 @@ public class PersistentBTree {
             z.keys[j] = y.keys[j + t + 1];
             z.values[j] = y.values[j + t + 1];
             y.keys[j + t + 1] = Long.MAX_VALUE;
-            y.values[j + t + 1] = "none";
+            y.values[j + t + 1] = 0L;
         }
 
         if (!y.isLeaf) {
@@ -211,7 +208,7 @@ public class PersistentBTree {
         x.keys[i] = y.keys[t];
         y.keys[t] = Long.MAX_VALUE;
         x.values[i] = y.values[t];
-        y.values[t] = "none";
+        y.values[t] = 0L;
 
         writeNode(y);
         writeNode(z);
@@ -234,10 +231,10 @@ public class PersistentBTree {
 
         // Keys and values are same length, read at same time
         long[] keys = new long[2*order - 1];
-        String[] values = new String[2*order - 1];
+        long[] values = new long[2*order - 1];
         for (int i = 0; i < keys.length; i++) {
             keys[i] = channel.readLong();
-            values[i] = channel.readUTF();
+            values[i] = channel.readLong();
         }
         
         channel.close();
@@ -264,7 +261,7 @@ public class PersistentBTree {
         // Store keys and values
         for (int i = 0; i < node.keys.length; i++) {
             channel.writeLong(node.keys[i]);
-            channel.writeUTF(node.values[i]);
+            channel.writeLong(node.values[i]);
         }
 
         if (node.offset == eof) {

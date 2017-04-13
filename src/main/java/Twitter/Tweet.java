@@ -3,9 +3,9 @@ public class Tweet {
     private String text;
     private String sentiment;
     private long id;
-    private String location;
+    private long location;
 
-    public Tweet(long id, String author, String text, String sentiment, String location) {
+    public Tweet(long id, String author, String text, String sentiment, long location) {
         this.id = id;
         this.author = author;
         this.text = text;
@@ -13,11 +13,15 @@ public class Tweet {
         this.location = location;
     }
 
-    public Tweet(long id, String author, String text, String location) {
+    public Tweet(long id, String author, String text, long location) {
         this.id = id;
         this.author = author;
         this.text = text;
         this.sentiment = SentimentAnalyzer.getInstance().classify(text);
+        this.location = location;
+    }
+
+    public void setLocation(long location) {
         this.location = location;
     }
 
@@ -37,7 +41,7 @@ public class Tweet {
         return this.sentiment;
     }
 
-    public String getLocation() {
+    public long getLocation() {
         return this.location;
     }
 
